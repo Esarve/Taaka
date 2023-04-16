@@ -3,14 +3,15 @@ package dev.souravdas.taaka
 import android.content.Context
 import android.net.Uri
 import android.provider.Telephony
-import androidx.compose.ui.text.capitalize
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.threeten.bp.LocalDateTime
+import org.threeten.bp.OffsetDateTime
 import org.threeten.bp.format.DateTimeFormatter
+import java.util.Locale
 
 
 /**
@@ -68,9 +69,21 @@ class MainVM : ViewModel() {
             amount?.toDoubleOrNull(),
             senderName.formatToAccount(),
             cardNumber,
-            date.toOffsetDateTime(),
+            toLocalDate(date),
             balance?.toDoubleOrNull()
         )
+    }
+
+    private fun toLocalDate(date: String?): LocalDateTime? {
+        return try {
+            val inputFormat = DateTimeFormatter.ofPattern("dd-MMM-yy hh:mm:ss a", Locale.ENGLISH)
+            val formattedDate = date?.replace(" BST", "")
+            LocalDateTime.parse(formattedDate,inputFormat)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+
     }
 
     fun matchesPatternForTxn(text: String): Boolean {
@@ -109,14 +122,3 @@ private fun String?.formatToAccount(): String? {
 
 }
 
-private fun String?.toOffsetDateTime(): LocalDateTime? {
-    return try {
-        val formatter = DateTimeFormatter.ofPattern("dd-MMM-yy hh:mm:ss a")
-
-        LocalDateTime.parse(this!!.replace(" BST", ""), formatter)
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    }
-
-}
